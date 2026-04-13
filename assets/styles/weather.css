@@ -1,0 +1,189 @@
+/* ============================================
+   Header
+   ============================================ */
+.header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.header h1 {
+    font-size: 1.4em;
+    color: var(--color-primary);
+    margin-bottom: 0.2rem;
+}
+.header p {
+    font-size: 0.85em;
+    color: var(--color-text-light);
+}
+
+/* ============================================
+   Search form
+   ============================================ */
+.search-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+.search-form input {
+    flex: 1;
+    padding: 0.6em 1em;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1em;
+    background: var(--color-surface);
+    color: var(--color-text);
+    transition: border-color 0.2s;
+}
+.search-form input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+.search-form button {
+    padding: 0.6em 1em;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.search-form button:hover { background: var(--color-primary-hover); }
+
+/* ============================================
+   Current weather
+   ============================================ */
+.current {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    display: none;
+}
+.current.visible { display: block; }
+.current .temp-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+.current .temp {
+    font-size: 3em;
+    font-weight: 700;
+    color: var(--color-text);
+}
+.current .temp-icon { width: 4em; height: 4em; }
+.current .desc {
+    text-transform: capitalize;
+    color: var(--color-text-light);
+    margin-top: 0.25rem;
+    font-size: 1em;
+}
+
+/* ============================================
+   Detail cards
+   ============================================ */
+.details {
+    display: none;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+.details.visible { display: grid; }
+.detail-card {
+    text-align: center;
+    background: var(--color-surface-alt);
+    border-radius: 10px;
+    padding: 0.75em 0.5em;
+}
+.detail-card .detail-icon {
+    font-size: 1.2em;
+    margin-bottom: 0.25rem;
+}
+.detail-card .detail-value {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--color-text);
+}
+.detail-card .detail-label {
+    font-size: 0.75em;
+    color: var(--color-text-muted);
+    margin-top: 0.15rem;
+}
+
+/* ============================================
+   Hourly forecast
+   ============================================ */
+.forecast {
+    display: none;
+}
+.forecast.visible { display: block; }
+.forecast h2 {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 0.75rem;
+}
+.forecast-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.forecast-item {
+    text-align: center;
+    flex: 1;
+}
+.forecast-item .forecast-time {
+    font-size: 0.75em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.25rem;
+}
+.forecast-item img { width: 2.25em; height: 2.25em; }
+.forecast-item .forecast-temp {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+.footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.75em;
+    color: var(--color-text-muted);
+}
+.footer a {
+    color: var(--color-link);
+    text-decoration: none;
+}
+
+/* ============================================
+   States
+   ============================================ */
+.error {
+    background: var(--color-error-bg);
+    color: var(--color-error-text);
+    padding: 0.8em;
+    border-radius: 8px;
+    text-align: center;
+    display: none;
+}
+.error.visible { display: block; }
+.loading { text-align: center; color: var(--color-text-light); display: none; }
+.loading.visible { display: block; }
+
+/* ============================================
+   Responsive — mobile adjustments
+   ============================================ */
+
+/* Small mobile: 2 columns for details */
+@media (max-width: 374px) {
+    .details.visible {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .current .temp { font-size: 2.5em; }
+}
+
+/* Tablet+ : slightly larger forecast icons */
+@media (min-width: 768px) {
+    .forecast-item img { width: 2.5em; height: 2.5em; }
+}

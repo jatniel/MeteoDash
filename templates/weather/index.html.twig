@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}MeteoDash - Tableau de bord météo{% endblock %}
+
+{% block body %}
+    <div class="header">
+        <h1>meteodash</h1>
+        <p>Your weather, instantly</p>
+    </div>
+
+    <div class="search-form">
+        <input type="search" id="city-input" placeholder="Paris, France" required minlength="2" maxlength="100">
+        <button id="search-btn">&#128269;</button>
+    </div>
+
+    <div class="loading" id="loading">Chargement...</div>
+    <div class="error" id="error"></div>
+
+    <div class="current" id="current">
+        <div class="temp-row">
+            <span class="temp" id="weather-temp"></span>
+            <img class="temp-icon" id="weather-icon" src="" alt="">
+        </div>
+        <div class="desc" id="weather-desc"></div>
+    </div>
+
+    <div class="details" id="details">
+        <div class="detail-card">
+            <div class="detail-icon">&#128167;</div>
+            <div class="detail-value" id="detail-humidity"></div>
+            <div class="detail-label">Humidity</div>
+        </div>
+        <div class="detail-card">
+            <div class="detail-icon">&#127744;</div>
+            <div class="detail-value" id="detail-wind"></div>
+            <div class="detail-label">Wind</div>
+        </div>
+        <div class="detail-card">
+            <div class="detail-icon">&#127777;&#65039;</div>
+            <div class="detail-value" id="detail-feels"></div>
+            <div class="detail-label">Feels like</div>
+        </div>
+        <div class="detail-card">
+            <div class="detail-icon">&#9728;&#65039;</div>
+            <div class="detail-value" id="detail-pressure"></div>
+            <div class="detail-label">Pressure</div>
+        </div>
+    </div>
+
+    <div class="forecast" id="forecast">
+        <h2>Hourly Forecast</h2>
+        <div class="forecast-row" id="forecast-row"></div>
+    </div>
+
+    <div class="footer">
+        Developed with &#10084; by <a href="https://jatniel.dev" target="_blank">jatniel.dev</a>
+    </div>
+{% endblock %}
