@@ -8,7 +8,7 @@ A simple weather dashboard built with **Symfony 8** and the **OpenWeatherMap API
 
 Created by **Jatniel Guzmán** — [jatniel.dev](https://jatniel.dev)
 
-Built for the [DevChallenges - Week 15](https://devchallenges.yoandev.co/challenge/2026-week-15/) organized by **YoanDev**.
+Built for the [DevChallenges - Week 15](https://devchallenges.yoandev.co/challenge/2026-week-15/) organized by **[YoanDev](https://github.com/yoanbernabeu)**.
 
 <p align="center">
   <img src="meteodash_image.png" alt="MeteoDash screenshot" width="400">
