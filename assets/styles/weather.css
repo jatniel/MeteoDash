@@ -150,11 +150,19 @@
     margin-top: 1.5rem;
     font-size: 0.75em;
     color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.35em;
 }
 .footer a {
     color: var(--color-link);
     text-decoration: none;
 }
+.footer a:hover { text-decoration: underline; }
+.footer-divider { color: var(--color-border); }
+.footer-challenge { font-weight: 500; }
 
 /* ============================================
    States
