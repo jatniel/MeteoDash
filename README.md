@@ -176,6 +176,62 @@ Then open [http://localhost:8000](http://localhost:8000).
 
 ---
 
+## Production deployment (Apache / shared hosting)
+
+### Requirements
+
+- PHP 8.4+
+- Composer
+- Apache with `mod_rewrite` enabled
+
+### Steps
+
+**1. Clone and install dependencies (no dev)**
+
+```bash
+git clone <repository-url>
+cd meteodash
+composer install --no-dev --optimize-autoloader
+```
+
+**2. Create `.env.local`** at the project root with your real values:
+
+```env
+APP_ENV=prod
+APP_SECRET=your_secret_here        # generate with: openssl rand -hex 32
+OPENWEATHERMAP_API_KEY=your_key_here
+WEATHER_LANG=fr
+WEATHER_UNITS=metric
+```
+
+**3. Compile assets**
+
+```bash
+php bin/console asset-map:compile
+```
+
+This dumps all CSS/JS into `public/assets/` as static files.
+
+**4. Warm up the cache**
+
+```bash
+php bin/console cache:clear --env=prod
+```
+
+**5. Set the document root** to the `public/` folder in your hosting control panel.
+
+**6. Apache `.htaccess`**
+
+The file `public/.htaccess` (included via `symfony/apache-pack`) handles URL rewriting. Make sure Apache has `AllowOverride All` enabled for the directory, otherwise routing will not work.
+
+### Notes
+
+- Never commit `.env.local` — it contains secrets.
+- The `var/` directory must be writable by the web server.
+- Weather results are cached for 10 minutes using the filesystem cache (`var/cache/`).
+
+---
+
 ## Tests
 
 4 tests, 21 assertions - no API key needed to run them.
