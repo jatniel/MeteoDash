@@ -15,6 +15,8 @@ namespace App\Service;
 use App\DTO\HourlyForecastData;
 use App\DTO\WeatherData;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -25,11 +27,17 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 final readonly class WeatherService
 {
     private const string BASE_URL = 'https://api.openweathermap.org/data/2.5';
+    private const int CACHE_TTL = 600; // 10 minutes
 
     public function __construct(
         private HttpClientInterface $httpClient,
+        private CacheInterface $cache,
         #[Autowire(env: 'OPENWEATHERMAP_API_KEY')]
         private string $openweathermapApiKey,
+        #[Autowire(env: 'WEATHER_LANG')]
+        private string $lang,
+        #[Autowire(env: 'WEATHER_UNITS')]
+        private string $units,
     ) {
     }
 
@@ -85,18 +93,24 @@ final readonly class WeatherService
         return $directions[(int) round($degrees / 45) % 8];
     }
 
-    /** @return array<string, mixed> Shared request logic to avoid query duplication. */
+    /** @return array<string, mixed> Shared request logic with cache. */
     private function request(string $endpoint, string $city): array
     {
-        $response = $this->httpClient->request('GET', self::BASE_URL.$endpoint, [
-            'query' => [
-                'q' => $city,
-                'appid' => $this->openweathermapApiKey,
-                'units' => 'metric',
-                'lang' => 'fr',
-            ],
-        ]);
+        $cacheKey = 'meteodash_'.md5($endpoint.strtolower($city).$this->lang.$this->units);
 
-        return $response->toArray();
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($endpoint, $city): array {
+            $item->expiresAfter(self::CACHE_TTL);
+
+            $response = $this->httpClient->request('GET', self::BASE_URL.$endpoint, [
+                'query' => [
+                    'q' => $city,
+                    'appid' => $this->openweathermapApiKey,
+                    'units' => $this->units,
+                    'lang' => $this->lang,
+                ],
+            ]);
+
+            return $response->toArray();
+        });
     }
 }

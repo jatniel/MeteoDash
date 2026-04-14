@@ -17,7 +17,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 /**
  * Handles the weather dashboard page and its API endpoint.
@@ -59,10 +62,22 @@ final class WeatherController extends AbstractController
                 'current' => $this->weatherService->getWeather($city),
                 'forecast' => $this->weatherService->getForecast($city),
             ]);
+        } catch (ClientExceptionInterface $e) {
+            return match ($e->getResponse()->getStatusCode()) {
+                404 => $this->json(['error' => 'City not found.'], Response::HTTP_NOT_FOUND),
+                401 => $this->json(['error' => 'API configuration error.'], Response::HTTP_INTERNAL_SERVER_ERROR),
+                429 => $this->json(['error' => 'Too many requests, please try again later.'], Response::HTTP_TOO_MANY_REQUESTS),
+                default => $this->json(['error' => 'Unable to retrieve weather data.'], Response::HTTP_BAD_GATEWAY),
+            };
+        } catch (ServerExceptionInterface | TransportExceptionInterface) {
+            return $this->json(
+                ['error' => 'Weather service unavailable, please try again later.'],
+                Response::HTTP_SERVICE_UNAVAILABLE,
+            );
         } catch (ExceptionInterface) {
             return $this->json(
-                ['error' => 'Impossible de récupérer la météo pour cette ville.'],
-                Response::HTTP_NOT_FOUND,
+                ['error' => 'An unexpected error occurred.'],
+                Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }
     }
