@@ -14,6 +14,8 @@ Built for the [DevChallenges - Week 15](https://devchallenges.yoandev.co/challen
   <img src="meteodash_image.png" alt="MeteoDash screenshot" width="400">
 </p>
 
+> **Live demo (temporary):** [meteodash.jatniel.dev](https://meteodash.jatniel.dev)
+
 ---
 
 ## Features
