@@ -14,6 +14,7 @@ namespace App\Service;
 
 use App\DTO\HourlyForecastData;
 use App\DTO\WeatherData;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -42,7 +43,7 @@ final readonly class WeatherService
     }
 
     /**
-     * @throws \Symfony\Contracts\HttpClient\Exception\ExceptionInterface on network or API error
+     * @throws InvalidArgumentException on network or API error
      */
     public function getWeather(string $city): WeatherData
     {
@@ -68,7 +69,7 @@ final readonly class WeatherService
      *
      * @return HourlyForecastData[]
      *
-     * @throws \Symfony\Contracts\HttpClient\Exception\ExceptionInterface on network or API error
+     * @throws InvalidArgumentException on network or API error
      */
     public function getForecast(string $city, int $limit = 5): array
     {
@@ -93,7 +94,9 @@ final readonly class WeatherService
         return $directions[(int) round($degrees / 45) % 8];
     }
 
-    /** @return array<string, mixed> Shared request logic with cache. */
+    /** @return array<string, mixed> Shared request logic with cache
+     * @throws InvalidArgumentException
+     */
     private function request(string $endpoint, string $city): array
     {
         $cacheKey = 'meteodash_'.md5($endpoint.strtolower($city).$this->lang.$this->units);
