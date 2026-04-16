@@ -69,7 +69,7 @@ final class WeatherController extends AbstractController
                 429 => $this->json(['error' => 'Too many requests, please try again later.'], Response::HTTP_TOO_MANY_REQUESTS),
                 default => $this->json(['error' => 'Unable to retrieve weather data.'], Response::HTTP_BAD_GATEWAY),
             };
-        } catch (ServerExceptionInterface | TransportExceptionInterface) {
+        } catch (ServerExceptionInterface|TransportExceptionInterface) {
             return $this->json(
                 ['error' => 'Weather service unavailable, please try again later.'],
                 Response::HTTP_SERVICE_UNAVAILABLE,
