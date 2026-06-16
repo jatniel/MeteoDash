@@ -8,6 +8,7 @@ use App\DTO\HourlyForecastData;
 use App\DTO\WeatherData;
 use App\Service\WeatherService;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
@@ -78,7 +79,13 @@ final class WeatherServiceTest extends TestCase
         $mockResponse = new MockResponse(json_encode($apiResponse, JSON_THROW_ON_ERROR));
         $httpClient = new MockHttpClient($mockResponse);
 
-        return new WeatherService($httpClient, 'fake-api-key');
+        return new WeatherService(
+            $httpClient,
+            new ArrayAdapter(),
+            'fake-api-key',
+            'fr',
+            'metric',
+        );
     }
 
     private function createForecastEntry(int $dt, float $temp, string $desc, string $icon): array

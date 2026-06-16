@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -33,5 +35,24 @@ final class WeatherControllerTest extends WebTestCase
 
         $data = json_decode((string) $client->getResponse()->getContent(), true);
         $this->assertArrayHasKey('error', $data);
+    }
+
+    public function testApiReturnsNotFoundWhenCityIsUnknown(): void
+    {
+        $client = static::createClient();
+
+        // Make the OpenWeatherMap call return 404 without hitting the real API,
+        // so we exercise the controller's error mapping (404 -> HTTP_NOT_FOUND).
+        $mockClient = new MockHttpClient(
+            static fn (): MockResponse => new MockResponse('', ['http_code' => Response::HTTP_NOT_FOUND]),
+        );
+        static::getContainer()->set('http_client', $mockClient);
+
+        $client->request('GET', '/api/weather/Atlantis');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+        $this->assertSame('City not found.', $data['error']);
     }
 }
