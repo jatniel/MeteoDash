@@ -75,9 +75,14 @@ final readonly class WeatherService
     {
         $data = $this->request('/forecast', $city);
 
+        // OpenWeatherMap returns `dt` in UTC and the city's UTC offset (seconds)
+        // in `city.timezone`. Shift by that offset and format with gmdate() so the
+        // time reflects the city's local clock, not the server's timezone.
+        $timezoneOffset = (int) ($data['city']['timezone'] ?? 0);
+
         return array_map(
             static fn (array $entry) => new HourlyForecastData(
-                time: date('H:i', $entry['dt']),
+                time: gmdate('H:i', (int) $entry['dt'] + $timezoneOffset),
                 temperature: $entry['main']['temp'],
                 description: $entry['weather'][0]['description'],
                 icon: $entry['weather'][0]['icon'],

@@ -55,6 +55,8 @@ final class WeatherServiceTest extends TestCase
     public function testGetForecastReturnsLimitedEntries(): void
     {
         $apiResponse = [
+            // UTC+1 (3600s) — forecast times must be shifted to the city's local clock.
+            'city' => ['timezone' => 3600],
             'list' => [
                 $this->createForecastEntry(1700000000, 20.0, 'nuageux', '04d'),
                 $this->createForecastEntry(1700010800, 19.5, 'pluie légère', '10d'),
@@ -70,6 +72,8 @@ final class WeatherServiceTest extends TestCase
 
         $this->assertCount(5, $result);
         $this->assertContainsOnlyInstancesOf(HourlyForecastData::class, $result);
+        // 1700000000 is 22:13 UTC; with the +1h city offset it must read 23:13.
+        $this->assertSame('23:13', $result[0]->time);
         $this->assertSame(20.0, $result[0]->temperature);
         $this->assertSame('nuageux', $result[0]->description);
     }
