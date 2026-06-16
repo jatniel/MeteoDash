@@ -1,5 +1,6 @@
 # MeteoDash
 
+[![CI](https://github.com/jatniel/MeteoDash/actions/workflows/ci.yml/badge.svg)](https://github.com/jatniel/MeteoDash/actions/workflows/ci.yml)
 ![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white)
 ![Symfony](https://img.shields.io/badge/Symfony-8.0-000000?logo=symfony&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue)
@@ -236,7 +237,7 @@ The file `public/.htaccess` (included via `symfony/apache-pack`) handles URL rew
 
 ## Tests
 
-4 tests, 21 assertions - no API key needed to run them.
+5 tests, 23 assertions - no API key needed to run them.
 
 ```bash
 vendor/bin/phpunit
@@ -245,9 +246,10 @@ vendor/bin/phpunit
 | Test | Type | What it verifies |
 |------|------|------------------|
 | `WeatherServiceTest::testGetWeatherReturnsCorrectDto` | Unit | API response → WeatherData mapping (all fields) |
-| `WeatherServiceTest::testGetForecastReturnsLimitedEntries` | Unit | API response → HourlyForecastData[] with correct limit |
+| `WeatherServiceTest::testGetForecastReturnsLimitedEntries` | Unit | API response → HourlyForecastData[] with correct limit and city-local times |
 | `WeatherControllerTest::testHomePageRendersSuccessfully` | Functional | `GET /` returns 200 and renders the page |
 | `WeatherControllerTest::testApiRejectsTooShortCity` | Functional | `GET /api/weather/a` returns 400 with error message |
+| `WeatherControllerTest::testApiReturnsNotFoundWhenCityIsUnknown` | Functional | Upstream 404 is mapped to `404 City not found.` (HTTP mocked) |
 
 Unit tests use Symfony's `MockHttpClient` - they mock the HTTP layer, so **no real API calls are made and no API key is required**.
 
