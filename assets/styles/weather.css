@@ -1,197 +1,197 @@
 /* ============================================
-   Header
+   Home: the question
    ============================================ */
-.header {
+.hero {
+    width: 100%;
+    max-width: 40rem;
+    margin-inline: auto;
     text-align: center;
-    margin-bottom: 1.5rem;
-}
-.header h1 {
-    font-size: 1.4em;
-    color: var(--color-primary);
-    margin-bottom: 0.2rem;
-}
-.header p {
-    font-size: 0.85em;
-    color: var(--color-text-light);
 }
 
-/* ============================================
-   Search form
-   ============================================ */
-.search-form {
+.hero-title {
+    font-size: clamp(2.125rem, 1.1rem + 4.6vw, 4.25rem);
+    font-weight: 300;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+    margin-bottom: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);
+}
+
+.pills {
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-}
-.search-form input {
-    flex: 1;
-    padding: 0.6em 1em;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    font-size: 1em;
-    background: var(--color-surface);
-    color: var(--color-text);
-    transition: border-color 0.2s;
-}
-.search-form input:focus {
-    outline: none;
-    border-color: var(--color-primary);
-}
-.search-form button {
-    padding: 0.6em 1em;
-    background: var(--color-primary);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.search-form button:hover { background: var(--color-primary-hover); }
-
-/* ============================================
-   Current weather
-   ============================================ */
-.current {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    display: none;
-}
-.current.visible { display: block; }
-.current .temp-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-.current .temp {
-    font-size: 3em;
-    font-weight: 700;
-    color: var(--color-text);
-}
-.current .temp-icon { width: 4em; height: 4em; }
-.current .desc {
-    text-transform: capitalize;
-    color: var(--color-text-light);
-    margin-top: 0.25rem;
-    font-size: 1em;
-}
-
-/* ============================================
-   Detail cards
-   ============================================ */
-.details {
-    display: none;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-}
-.details.visible { display: grid; }
-.detail-card {
-    text-align: center;
-    background: var(--color-surface-alt);
-    border-radius: 10px;
-    padding: 0.75em 0.5em;
-}
-.detail-card .detail-icon {
-    font-size: 1.2em;
-    margin-bottom: 0.25rem;
-}
-.detail-card .detail-value {
-    font-size: 1.1em;
-    font-weight: 600;
-    color: var(--color-text);
-}
-.detail-card .detail-label {
-    font-size: 0.75em;
-    color: var(--color-text-muted);
-    margin-top: 0.15rem;
-}
-
-/* ============================================
-   Hourly forecast
-   ============================================ */
-.forecast {
-    display: none;
-}
-.forecast.visible { display: block; }
-.forecast h2 {
-    font-size: 0.95em;
-    font-weight: 600;
-    color: var(--color-text);
-    margin-bottom: 0.75rem;
-}
-.forecast-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.5rem;
-}
-.forecast-item {
-    text-align: center;
-    flex: 1;
-}
-.forecast-item .forecast-time {
-    font-size: 0.75em;
-    color: var(--color-text-muted);
-    margin-bottom: 0.25rem;
-}
-.forecast-item img { width: 2.25em; height: 2.25em; }
-.forecast-item .forecast-temp {
-    font-size: 0.95em;
-    font-weight: 600;
-    color: var(--color-text);
-}
-
-/* ============================================
-   Footer
-   ============================================ */
-.footer {
-    text-align: center;
-    margin-top: 1.5rem;
-    font-size: 0.75em;
-    color: var(--color-text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
     flex-wrap: wrap;
-    gap: 0.35em;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    list-style: none;
 }
-.footer a {
-    color: var(--color-link);
-    text-decoration: none;
+
+.pill {
+    position: relative;
+    height: 2.25rem;
+    padding-inline: 0.9375rem;
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: 0.9375rem;
+    cursor: pointer;
+    transition: color 150ms var(--ease), border-color 150ms var(--ease), background-color 150ms var(--ease);
 }
-.footer a:hover { text-decoration: underline; }
-.footer-divider { color: var(--color-border); }
-.footer-challenge { font-weight: 500; }
+/* 44px touch target around a 36px pill. */
+.pill::after { content: ''; position: absolute; inset: -0.25rem 0; }
+.pill:hover {
+    color: var(--ink);
+    border-color: var(--ink-2);
+    background-color: color-mix(in oklch, var(--ink) 4%, transparent);
+}
+.pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 999px; }
+
+.hero-hint {
+    margin-top: 1.75rem;
+    color: var(--ink-2);
+    font-size: 0.875rem;
+}
 
 /* ============================================
-   States
+   Detail: place, temperature, curve, readings
    ============================================ */
-.error {
-    background: var(--color-error-bg);
-    color: var(--color-error-text);
-    padding: 0.8em;
-    border-radius: 8px;
-    text-align: center;
-    display: none;
-}
-.error.visible { display: block; }
-.loading { text-align: center; color: var(--color-text-light); display: none; }
-.loading.visible { display: block; }
-
-/* ============================================
-   Responsive — mobile adjustments
-   ============================================ */
-
-/* Small mobile: 2 columns for details */
-@media (max-width: 374px) {
-    .details.visible {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .current .temp { font-size: 2.5em; }
+.results {
+    width: 100%;
+    padding-block: clamp(1.25rem, 0.5rem + 3vw, 3rem) clamp(2.5rem, 1.5rem + 4vw, 4.5rem);
 }
 
-/* Tablet+ : slightly larger forecast icons */
-@media (min-width: 768px) {
-    .forecast-item img { width: 2.5em; height: 2.5em; }
+.place {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    font-size: clamp(1.75rem, 1.25rem + 2.2vw, 2.75rem);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    scroll-margin-top: 1rem;
+}
+.place:focus { outline: none; }
+.place-country {
+    color: var(--ink-2);
+    font-weight: 400;
+    font-size: 0.6em;
+    letter-spacing: 0;
+}
+
+.now {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    column-gap: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+    row-gap: 0.25rem;
+    margin-top: clamp(0.25rem, 0.5vw, 0.75rem);
+}
+
+.temp {
+    font-size: clamp(6rem, 2.75rem + 13.5vw, 9.5rem);
+    font-weight: 200;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    margin-left: -0.05em;
+    white-space: nowrap;
+}
+.temp-deg {
+    margin-left: 0.04em;
+    color: var(--ink-2);
+    font-weight: 200;
+}
+
+.cond {
+    display: grid;
+    gap: 0.375rem;
+    padding-bottom: clamp(0.25rem, 0.1rem + 0.8vw, 0.875rem);
+}
+.cond-main {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: clamp(1.1875rem, 1rem + 0.6vw, 1.5rem);
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+}
+.cond-main .icon { flex: none; width: 1.75rem; height: 1.75rem; color: var(--tint); stroke-width: 1.4; }
+.cond-feels { color: var(--ink-2); font-size: 1rem; }
+
+/* ---------- Temperature curve ---------- */
+.curve { margin-top: clamp(2rem, 1rem + 4vw, 4rem); }
+.curve-plot { width: 100%; min-height: 11rem; }
+
+.curve-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.curve-axis { stroke: var(--hair); stroke-width: 1; }
+.curve-area { fill: var(--tint); }
+.curve-line {
+    fill: none;
+    stroke: var(--tint);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.curve-dot { fill: var(--ground); stroke: var(--tint); stroke-width: 2; }
+.is-now .curve-dot { fill: var(--tint); }
+.curve-value {
+    fill: var(--ink);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-anchor: middle;
+    font-variant-numeric: tabular-nums;
+}
+.curve-hour {
+    fill: var(--ink-2);
+    font-size: 0.8125rem;
+    text-anchor: middle;
+    font-variant-numeric: tabular-nums;
+}
+.curve-icon { color: var(--ink-2); stroke-width: 1.5; }
+
+/* Signature: the line draws left to right, then points settle in. */
+.curve-svg.is-animated .curve-line {
+    stroke-dasharray: var(--len);
+    animation: draw 700ms cubic-bezier(0.25, 0.6, 0.35, 1) backwards;
+}
+.curve-svg.is-animated .curve-area { animation: settle 600ms ease-out 250ms backwards; }
+.curve-svg.is-animated .pt { animation: settle 360ms ease-out backwards; animation-delay: calc(var(--i) * 130ms + 140ms); }
+@keyframes draw { from { stroke-dashoffset: var(--len); } }
+@keyframes settle { from { opacity: 0; } }
+
+/* While a new city loads, the figures breathe. */
+.results.is-loading .now,
+.results.is-loading .curve { animation: breathe 1.3s ease-in-out infinite; }
+@keyframes breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+}
+
+/* ---------- Readings ---------- */
+.readings {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.75rem 1.5rem;
+    margin-top: clamp(1.75rem, 1rem + 3vw, 3rem);
+    padding-top: clamp(1.5rem, 1rem + 1.5vw, 2rem);
+    border-top: 1px solid var(--hair);
+}
+@media (min-width: 40rem) {
+    .readings { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.reading dt { color: var(--ink-2); font-size: 0.875rem; margin-bottom: 0.25rem; }
+.reading dd {
+    font-size: clamp(1.375rem, 1.1rem + 0.9vw, 1.75rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    white-space: nowrap;
+}
+.reading .unit { color: var(--ink-2); font-size: 0.6em; font-weight: 400; letter-spacing: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+    .results.is-loading .now,
+    .results.is-loading .curve { animation: none; opacity: 0.55; }
 }

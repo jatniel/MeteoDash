@@ -47,7 +47,7 @@ final class WeatherServiceTest extends TestCase
         $this->assertSame('01d', $result->icon);
         $this->assertSame(62, $result->humidity);
         $this->assertSame(3.5, $result->windSpeed);
-        $this->assertSame('NW', $result->windDirection);
+        $this->assertSame('NO', $result->windDirection);
         $this->assertSame(10000, $result->visibility);
         $this->assertSame(1015, $result->pressure);
     }

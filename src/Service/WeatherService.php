@@ -91,10 +91,10 @@ final readonly class WeatherService
         );
     }
 
-    /** Converts wind degrees (0-360) to a cardinal direction (N, NE, E…). */
+    /** Converts wind degrees (0-360) to a French cardinal direction (N, NE, E, SE, S, SO, O, NO). */
     private static function degreesToDirection(int $degrees): string
     {
-        $directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+        $directions = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
 
         return $directions[(int) round($degrees / 45) % 8];
     }

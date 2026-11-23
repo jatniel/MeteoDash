@@ -1,34 +1,58 @@
 <!DOCTYPE html>
-<html lang="{% block lang %}en{% endblock %}">
+<html lang="fr">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>{% block title %}MeteoDash — Instant Weather Dashboard{% endblock %}</title>
-        <meta name="description" content="{% block meta_description %}Check current weather and hourly forecast for any city in the world. Temperature, humidity, wind speed and more - instantly.{% endblock %}">
+        <title>{% block title %}meteodash - la météo de votre ville. by Jatniel.dev{% endblock %}</title>
+        <meta name="description" content="{% block meta_description %}Météo actuelle et prévisions des 15 prochaines heures pour n'importe quelle ville du monde : température, ressenti, humidité, vent, pression, visibilité.{% endblock %}">
         <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
         <meta name="author" content="Jatniel Guzmán">
-        <meta name="theme-color" content="#4a90d9">
+        <meta name="color-scheme" content="light dark">
+        <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+        <meta name="theme-color" content="#1a1e27" media="(prefers-color-scheme: dark)">
 
         <!-- Open Graph -->
         <meta property="og:type" content="website">
-        <meta property="og:site_name" content="MeteoDash">
-        <meta property="og:title" content="{% block og_title %}MeteoDash — Instant Weather Dashboard{% endblock %}">
-        <meta property="og:description" content="{% block og_description %}Check current weather and hourly forecast for any city in the world.{% endblock %}">
+        <meta property="og:locale" content="fr_FR">
+        <meta property="og:site_name" content="meteodash">
+        <meta property="og:title" content="{% block og_title %}meteodash — la météo de votre ville{% endblock %}">
+        <meta property="og:description" content="{% block og_description %}Météo actuelle et prévisions des 15 prochaines heures pour n'importe quelle ville du monde.{% endblock %}">
 
-        <!-- Preconnect for weather icons -->
-        <link rel="preconnect" href="https://openweathermap.org">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@200;300;400;500;600&amp;display=swap">
 
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌤️</text></svg>">
+        <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231f2733'/%3E%3Cg fill='none' stroke='%23bcd6f2' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='16' cy='16' r='5'/%3E%3Cpath d='M16 4.5v3M16 24.5v3M4.5 16h3M24.5 16h3M7.9 7.9l2.1 2.1M22 22l2.1 2.1M7.9 24.1L10 22M22 10l2.1-2.1'/%3E%3C/g%3E%3C/svg%3E">
+
+        <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+        <link rel="stylesheet" href="{{ asset('styles/weather.css') }}">
 
         {% block stylesheets %}{% endblock %}
     </head>
-    <body>
-        <div class="container">
+    <body data-sky="neutral" data-view="home">
+        <header class="topbar">
+            <h1 class="wordmark"><a href="{{ path('app_weather') }}">meteodash</a></h1>
+            <div class="topbar-search" id="bar-slot"></div>
+            <div class="clock">
+                <span class="clock-label">Heure locale</span>
+                <time class="clock-time" id="clock" datetime="">--:--</time>
+            </div>
+        </header>
+
+        <main class="stage" id="stage" data-api-url="{{ path('api_weather') }}">
             {% block body %}{% endblock %}
-        </div>
+        </main>
+
+        <footer class="footer">
+            <p>
+                <span>Développé par <a href="https://jatniel.dev" target="_blank" rel="noopener noreferrer">jatniel.dev</a></span>
+                <a href="https://devchallenges.yoandev.co/challenge/2026-week-15/" target="_blank" rel="noopener noreferrer">DevChallenges Week 15</a>
+                <a href="https://github.com/jatniel/MeteoDash" target="_blank" rel="noopener noreferrer">GitHub</a>
+            </p>
+        </footer>
 
         {% block javascripts %}{% endblock %}
-        {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% block importmap %}{{ importmap('app', {nonce: csp_nonce()}) }}{% endblock %}
     </body>
 </html>

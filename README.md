@@ -22,10 +22,11 @@ Built for the [DevChallenges - Week 15](https://devchallenges.yoandev.co/challen
 ## Features
 
 - Search weather by city name
-- Current temperature, description and weather icon
-- Detail cards: humidity, wind speed, feels like, pressure
+- Current temperature, description and line icons (inline SVG)
+- Readings: feels like, humidity, wind (km/h + direction), pressure, visibility
 - 3-hour forecast (next 5 slots)
-- Fully responsive: mobile, tablet, Full HD, 2K, 4K, 5K, 6K
+- Calm "living sky" design: the page tint follows the weather and day or night, French UI, fluid from 320 px to 4K
+- Temperature curve for the next 15 hours, drawn in inline SVG
 - No external JS dependencies - vanilla JavaScript
 
 ---
@@ -36,7 +37,7 @@ The user types a city name. The frontend sends an AJAX request to the Symfony ba
 
 ```
 Browser (weather.js)
-  → GET /api/weather/{city}
+  → POST /api/weather  { "city": "..." }
     → WeatherController::apiWeather()
       → WeatherService::getWeather()    → OpenWeatherMap /data/2.5/weather
       → WeatherService::getForecast()   → OpenWeatherMap /data/2.5/forecast
@@ -52,9 +53,24 @@ Browser (weather.js)
 
 Renders the weather dashboard page.
 
-### `GET /api/weather/{city}`
+### `POST /api/weather`
 
-Returns current weather and forecast as JSON.
+Returns current weather and forecast as JSON. The city is sent in the JSON body (never in the URL):
+
+```json
+{ "city": "Madrid" }
+```
+
+The endpoint only accepts same-origin requests (see [Security](#security)), so a call from outside the browser must send the matching headers:
+
+```bash
+curl -X POST http://localhost:8000/api/weather \
+  -H 'Content-Type: application/json' \
+  -H 'Origin: http://localhost:8000' \
+  -d '{"city": "Madrid"}'
+```
+
+Errors: `400` invalid body or city name, `403` not same-origin, `404` unknown city, `413` body over 1 KB, `415` not `application/json`, `429` rate limit exceeded (with `Retry-After`).
 
 **Example response:**
 
@@ -69,7 +85,7 @@ Returns current weather and forecast as JSON.
     "icon": "02d",
     "humidity": 62,
     "wind_speed": 5.1,
-    "wind_direction": "NW",
+    "wind_direction": "NO",
     "visibility": 10000,
     "pressure": 1018
   },
@@ -87,8 +103,20 @@ Returns current weather and forecast as JSON.
 **Error response:**
 
 ```json
-{ "error": "Impossible de récupérer la météo pour cette ville." }
+{ "error": "Ville introuvable." }
 ```
+
+---
+
+## Security
+
+- The city never appears in a URL (no query string, no history entry): it is sent in a `POST` JSON body.
+- `POST /api/weather` requires `Content-Type: application/json`, a body of at most 1 KB, and a city of 2 to 100 characters (letters, combining marks, spaces, apostrophes, hyphens, dots, commas).
+- Same-origin check: `Sec-Fetch-Site` must be `same-origin` and `Origin`, if sent, must match the site; at least one of the two is required. Combined with the JSON content type (which forces a CORS preflight that is never answered), this blocks CSRF and use of the API key by other sites.
+- Rate limiting: 20 requests per minute per client IP (`weather_api` limiter, sliding window), answered with `429` and `Retry-After`.
+- Error messages are generic and in French; upstream details are never exposed. API responses are sent with `Cache-Control: no-store`.
+- HTML responses carry a nonce-based Content-Security-Policy (no `unsafe-inline`), `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, and HSTS on HTTPS requests (`src/EventListener/SecurityHeadersListener.php`).
+- Behind a reverse proxy, configure Symfony's trusted proxies so the client IP (rate limit) and scheme (origin check) are read correctly.
 
 ---
 
@@ -99,6 +127,8 @@ meteodash/
 ├── assets/
 │   ├── app.js                    # JS entry point
 │   ├── weather.js                # AJAX logic & DOM updates
+│   ├── curve.js                  # Temperature curve (inline SVG)
+│   ├── icons.js                  # Weather line icons
 │   └── styles/
 │       ├── app.css               # Global layout, CSS variables, responsive
 │       └── weather.css           # Dashboard component styles
@@ -109,7 +139,7 @@ meteodash/
 │   └── index.php                 # Front controller
 ├── src/
 │   ├── Controller/
-│   │   └── WeatherController.php # Routes: / and /api/weather/{city}
+│   │   └── WeatherController.php # Routes: / and POST /api/weather
 │   ├── DTO/
 │   │   ├── WeatherData.php       # Current weather value object
 │   │   └── HourlyForecastData.php# Forecast entry value object

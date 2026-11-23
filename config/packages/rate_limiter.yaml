@@ -1,0 +1,15 @@
+framework:
+    rate_limiter:
+        # Protects the OpenWeatherMap API key from abuse: 20 requests/minute per client IP.
+        weather_api:
+            policy: 'sliding_window'
+            limit: 20
+            interval: '1 minute'
+
+when@test:
+    framework:
+        rate_limiter:
+            weather_api:
+                policy: 'sliding_window'
+                limit: 10000
+                interval: '1 minute'
