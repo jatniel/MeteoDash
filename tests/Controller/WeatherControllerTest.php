@@ -240,6 +240,95 @@ final class WeatherControllerTest extends WebTestCase
         $this->assertSame('Ville introuvable.', $this->json($client)['error']);
     }
 
+    public function testBurstLimitReturns429WithRetryAfter(): void
+    {
+        $this->useLimit('WEATHER_BURST_LIMIT', 3);
+        $client = static::createClient();
+        $client->disableReboot(); // keep the in-memory limiter state between requests
+        $this->mockWeather();
+
+        for ($i = 0; $i < 3; ++$i) {
+            $this->postCity($client, 'Paris');
+            $this->assertResponseIsSuccessful();
+        }
+
+        $this->postCity($client, 'Paris');
+        $this->assertResponseStatusCodeSame(Response::HTTP_TOO_MANY_REQUESTS);
+        $headers = $client->getResponse()->headers;
+        $retryAfter = (int) $headers->get('Retry-After');
+        $this->assertGreaterThanOrEqual(1, $retryAfter);
+        $this->assertLessThanOrEqual(6, $retryAfter);
+        $this->assertSame(\sprintf('Trop de recherches, réessayez dans %d s.', $retryAfter), $this->json($client)['error']);
+        $this->assertStringContainsString('no-store', (string) $headers->get('Cache-Control'));
+        $this->assertSame('nosniff', $headers->get('X-Content-Type-Options'));
+    }
+
+    public function testDailyIpLimitReturns429(): void
+    {
+        $this->useLimit('WEATHER_DAILY_IP_LIMIT', 2);
+        $client = static::createClient();
+        $client->disableReboot(); // keep the in-memory limiter state between requests
+        $this->mockWeather();
+
+        $this->postCity($client, 'Paris');
+        $this->postCity($client, 'Paris');
+        $this->assertResponseIsSuccessful();
+
+        $this->postCity($client, 'Paris');
+        $this->assertResponseStatusCodeSame(Response::HTTP_TOO_MANY_REQUESTS);
+        $this->assertSame('Trop de recherches, réessayez plus tard.', $this->json($client)['error']);
+        $this->assertGreaterThan(3600, (int) $client->getResponse()->headers->get('Retry-After'));
+    }
+
+    public function testGlobalLimitReturnsItsOwnMessage(): void
+    {
+        $this->useLimit('WEATHER_DAILY_GLOBAL_LIMIT', 1);
+        $client = static::createClient();
+        $client->disableReboot(); // keep the in-memory limiter state between requests
+        $this->mockWeather();
+
+        $this->postCity($client, 'Paris');
+        $this->assertResponseIsSuccessful();
+
+        $this->postCity($client, 'Paris');
+        $this->assertResponseStatusCodeSame(Response::HTTP_TOO_MANY_REQUESTS);
+        $this->assertSame('La démo a atteint sa limite quotidienne, réessayez demain.', $this->json($client)['error']);
+        $this->assertGreaterThanOrEqual(1, (int) $client->getResponse()->headers->get('Retry-After'));
+    }
+
+    public function testRateLimitIsCheckedAfterOriginButBeforeValidation(): void
+    {
+        $this->useLimit('WEATHER_BURST_LIMIT', 1);
+        $client = static::createClient();
+        $client->disableReboot(); // keep the in-memory limiter state between requests
+
+        $this->postCity($client, 'a');
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $this->postCity($client, 'Paris', ['HTTP_ORIGIN' => 'https://evil.example']);
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+
+        $this->postCity($client, 'a');
+        $this->assertResponseStatusCodeSame(Response::HTTP_TOO_MANY_REQUESTS);
+    }
+
+    /** Lowers one limiter's limit (test config reads it from the environment). */
+    private function useLimit(string $envVar, int $limit): void
+    {
+        putenv($envVar.'='.$limit);
+        $_ENV[$envVar] = (string) $limit;
+    }
+
+    protected function tearDown(): void
+    {
+        foreach (['WEATHER_BURST_LIMIT', 'WEATHER_DAILY_IP_LIMIT', 'WEATHER_DAILY_GLOBAL_LIMIT'] as $name) {
+            putenv($name);
+            unset($_ENV[$name]);
+        }
+
+        parent::tearDown();
+    }
+
     /** @param array<string, string> $server */
     private function postCity(KernelBrowser $client, string $city, array $server = []): void
     {

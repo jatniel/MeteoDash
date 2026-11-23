@@ -15,7 +15,7 @@ namespace App\Controller;
 use App\Service\WeatherService;
 use JsonException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -36,8 +36,12 @@ final class WeatherController extends AbstractController
 
     public function __construct(
         private readonly WeatherService $weatherService,
-        #[Autowire(service: 'limiter.weather_api')]
-        private readonly RateLimiterFactoryInterface $weatherApiLimiter,
+        #[Target('weather_burst.limiter')]
+        private readonly RateLimiterFactoryInterface $weatherBurstLimiter,
+        #[Target('weather_daily_ip.limiter')]
+        private readonly RateLimiterFactoryInterface $weatherDailyIpLimiter,
+        #[Target('weather_daily_global.limiter')]
+        private readonly RateLimiterFactoryInterface $weatherDailyGlobalLimiter,
     ) {
     }
 
@@ -61,7 +65,7 @@ final class WeatherController extends AbstractController
      * Returns weather data as JSON for the city given in the JSON body.
      *
      * The city is sent in a POST body (never in the URL) and the request is
-     * hardened: same-origin check, rate limit, content type, size and input
+     * hardened: same-origin check, rate limits, content type, size and input
      * validation. Only HttpClient exceptions are caught — unexpected errors
      * bubble up so they are not silently swallowed.
      */
@@ -81,15 +85,8 @@ final class WeatherController extends AbstractController
             return $this->error('Requête non autorisée.', Response::HTTP_FORBIDDEN);
         }
 
-        $limit = $this->weatherApiLimiter->create($request->getClientIp() ?? 'unknown')->consume();
-        if (!$limit->isAccepted()) {
-            $retryAfter = max(1, $limit->getRetryAfter()->getTimestamp() - time());
-
-            return $this->error(
-                'Trop de requêtes, réessayez dans un instant.',
-                Response::HTTP_TOO_MANY_REQUESTS,
-                ['Retry-After' => (string) $retryAfter],
-            );
+        if (null !== $limited = $this->checkRateLimits($request)) {
+            return $limited;
         }
 
         if ('json' !== $request->getContentTypeFormat()) {
@@ -134,6 +131,47 @@ final class WeatherController extends AbstractController
         } catch (ExceptionInterface) {
             return $this->error('Une erreur inattendue est survenue.', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    /**
+     * Consumes one token from each limiter (burst, daily per IP, daily global).
+     *
+     * Checked in that order and stopping at the first rejection, so a request
+     * refused by a stricter limit does not use up the later ones.
+     */
+    private function checkRateLimits(Request $request): ?JsonResponse
+    {
+        $ip = $request->getClientIp() ?? 'unknown';
+
+        foreach ([
+            [$this->weatherBurstLimiter, $ip, false],
+            [$this->weatherDailyIpLimiter, $ip, false],
+            [$this->weatherDailyGlobalLimiter, 'global', true],
+        ] as [$factory, $key, $global]) {
+            $limit = $factory->create($key)->consume();
+            if ($limit->isAccepted()) {
+                continue;
+            }
+
+            $retryAfter = max(1, $limit->getRetryAfter()->getTimestamp() - time());
+
+            return $this->error(
+                $global ? 'La démo a atteint sa limite quotidienne, réessayez demain.' : \sprintf('Trop de recherches, réessayez %s.', $this->formatWait($retryAfter)),
+                Response::HTTP_TOO_MANY_REQUESTS,
+                ['Retry-After' => (string) $retryAfter],
+            );
+        }
+
+        return null;
+    }
+
+    private function formatWait(int $seconds): string
+    {
+        return match (true) {
+            $seconds <= 120 => \sprintf('dans %d s', $seconds),
+            $seconds <= 3600 => \sprintf('dans %d min', (int) ceil($seconds / 60)),
+            default => 'plus tard',
+        };
     }
 
     /**

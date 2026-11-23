@@ -17,8 +17,14 @@ const barSlot = $('bar-slot');
 const curveHost = $('curve');
 
 const API_URL = stage.dataset.apiUrl;
+const pills = document.querySelectorAll('[data-city]');
+const COOLDOWN_MAX_SECONDS = 120;
 let requestId = 0;
 let forecastItems = [];
+let inFlight = false;
+let cooldownTimer = 0;
+let cooldownUntil = 0;
+let shownKeys = new Set();
 
 /* ---------- Live local clock ---------- */
 
@@ -101,8 +107,40 @@ function setMessage(text) {
     input.setAttribute('aria-invalid', 'true');
 }
 
+/** Comparison key for a city name: trimmed, lowercase, without accents. */
+function normalize(name) {
+    return name
+        .normalize('NFD')
+        .replace(/\p{M}/gu, '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toLocaleLowerCase('fr');
+}
+
+const cooling = () => Date.now() < cooldownUntil;
+
+/** Submit button and suggestion pills are inert while loading or cooling down. */
+function syncControls() {
+    const locked = inFlight || cooling();
+    submit.disabled = locked;
+    pills.forEach((pill) => pill.setAttribute('aria-disabled', locked ? 'true' : 'false'));
+}
+
+/** Locks new searches for `seconds` after a 429, then clears the stale message. */
+function startCooldown(seconds, message) {
+    window.clearTimeout(cooldownTimer);
+    cooldownUntil = Date.now() + seconds * 1000;
+    syncControls();
+    cooldownTimer = window.setTimeout(() => {
+        cooldownUntil = 0;
+        syncControls();
+        if (errorRow.textContent.trim() === message) setMessage('');
+    }, seconds * 1000);
+}
+
 function setBusy(busy) {
-    submit.disabled = busy;
+    inFlight = busy;
+    syncControls();
     submit.setAttribute('aria-busy', busy ? 'true' : 'false');
     form.setAttribute('aria-busy', busy ? 'true' : 'false');
     results.setAttribute('aria-busy', busy ? 'true' : 'false');
@@ -192,6 +230,8 @@ if ('ResizeObserver' in window) {
 /* ---------- Search ---------- */
 
 async function search(city) {
+    if (inFlight || cooling()) return;
+
     const query = city.trim();
     if ([...query].length < 2) {
         setMessage('Saisissez au moins 2 caractères.');
@@ -199,6 +239,13 @@ async function search(city) {
         return;
     }
 
+    // Same city as the one on screen: keep the view, no new request.
+    if (shownKeys.has(normalize(query))) {
+        setMessage('');
+        return;
+    }
+
+    const wasPill = document.activeElement && document.activeElement.classList.contains('pill');
     const current = ++requestId;
     setMessage('');
     loading.hidden = false;
@@ -221,10 +268,12 @@ async function search(city) {
         if (current !== requestId) return;
 
         if (!response.ok || !data || !data.current) {
-            throw new Error((data && data.error) || 'Une erreur est survenue, réessayez dans un instant.');
+            const error = new Error((data && data.error) || 'Une erreur est survenue, réessayez dans un instant.');
+            error.retryAfter = response.status === 429 ? Number.parseInt(response.headers.get('Retry-After') ?? '', 10) : 0;
+            throw error;
         }
 
-        const wasPill = document.activeElement && document.activeElement.classList.contains('pill');
+        shownKeys = new Set([normalize(query), normalize(data.current.city)]);
         showDetail();
         input.value = data.current.city;
         document.body.dataset.sky = skyFor(data.current.icon);
@@ -239,6 +288,7 @@ async function search(city) {
     } catch (err) {
         if (current !== requestId) return;
         setMessage(err.message);
+        if (err.retryAfter > 0 && err.retryAfter <= COOLDOWN_MAX_SECONDS) startCooldown(err.retryAfter, err.message);
     } finally {
         if (current === requestId) {
             loading.hidden = true;
@@ -252,8 +302,9 @@ form.addEventListener('submit', (event) => {
     search(input.value);
 });
 
-document.querySelectorAll('[data-city]').forEach((button) => {
+pills.forEach((button) => {
     button.addEventListener('click', () => {
+        if (inFlight || cooling()) return;
         input.value = button.dataset.city;
         search(button.dataset.city);
     });

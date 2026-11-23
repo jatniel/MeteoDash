@@ -1,15 +1,47 @@
 framework:
     rate_limiter:
-        # Protects the OpenWeatherMap API key from abuse: 20 requests/minute per client IP.
-        weather_api:
-            policy: 'sliding_window'
-            limit: 20
-            interval: '1 minute'
+        # Strict anti-spam limits for this low-traffic demo. All three protect
+        # the OpenWeatherMap API key; they are consumed in this order.
 
+        # Short burst per client IP: 3 searches at once, then 1 every 5 seconds.
+        weather_burst:
+            policy: 'token_bucket'
+            limit: 3
+            rate: { interval: '5 seconds', amount: 1 }
+
+        # Daily quota per client IP.
+        weather_daily_ip:
+            policy: 'fixed_window'
+            limit: 50
+            interval: '1 day'
+
+        # Daily quota shared by every visitor (keeps the API key under its quota).
+        weather_daily_global:
+            policy: 'fixed_window'
+            limit: 300
+            interval: '1 day'
+
+# Effectively unlimited in tests; the 429 tests lower these through the
+# environment variables below (see WeatherControllerTest).
 when@test:
+    parameters:
+        env(WEATHER_BURST_LIMIT): '10000'
+        env(WEATHER_DAILY_IP_LIMIT): '10000'
+        env(WEATHER_DAILY_GLOBAL_LIMIT): '10000'
     framework:
         rate_limiter:
-            weather_api:
-                policy: 'sliding_window'
-                limit: 10000
-                interval: '1 minute'
+            weather_burst:
+                policy: 'token_bucket'
+                storage_service: 'test.limiter_storage'
+                limit: '%env(int:WEATHER_BURST_LIMIT)%'
+                rate: { interval: '5 seconds', amount: 1 }
+            weather_daily_ip:
+                policy: 'fixed_window'
+                storage_service: 'test.limiter_storage'
+                limit: '%env(int:WEATHER_DAILY_IP_LIMIT)%'
+                interval: '1 day'
+            weather_daily_global:
+                policy: 'fixed_window'
+                storage_service: 'test.limiter_storage'
+                limit: '%env(int:WEATHER_DAILY_GLOBAL_LIMIT)%'
+                interval: '1 day'
